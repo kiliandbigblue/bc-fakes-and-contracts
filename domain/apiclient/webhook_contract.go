@@ -38,7 +38,7 @@ type UpsertWebhookRequest struct {
 	// Destination is the URL where the webhook events are sent.
 	Destination string `json:"destination"`
 	// Active indicates whether the webhook is active or not.
-	Active bool `json:"is_active"`
+	Active *bool `json:"is_active"`
 	// Custom header.
 	Headers map[string]string `json:"headers"`
 }
@@ -76,17 +76,10 @@ type ListWebhooksResponse struct {
 	Meta *Meta `json:"meta,omitempty"`
 }
 
-// DeleteWebhookResponse is the response retrieved from the BigCommerce API Delete Webhook call.
-type DeleteWebhookResponse struct {
-	// Webhook is the deleted webhook object.
-	Webhook Webhook `json:"data"`
-}
-
 type Client interface {
 	CreateWebhook(ctx context.Context, req *UpsertWebhookRequest) (*UpsertWebhookResponse, error)
 	UpdateWebhook(ctx context.Context, webhookID int, req *UpsertWebhookRequest) (*UpsertWebhookResponse, error)
 	ListWebhooks(ctx context.Context, opts *ListWebhooksOptions) (*ListWebhooksResponse, error)
-	DeleteWebhook(ctx context.Context, webhookID int) (*DeleteWebhookResponse, error)
 }
 
 type ClientContract struct {
@@ -100,11 +93,12 @@ func (c ClientContract) Test(t *testing.T) {
 
 		scope := "store/order/updated"
 		destination := "https://" + fake.DomainName() + "/" + fake.Characters()
+		active := true
 
 		res, err := cli.CreateWebhook(ctx, &UpsertWebhookRequest{
 			Scope:       scope,
 			Destination: destination,
-			Active:      true,
+			Active:      &active,
 		})
 		assert.NoError(t, err)
 
@@ -113,7 +107,7 @@ func (c ClientContract) Test(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Len(t, got.Data, 1)
-		assert.Equal(t, res, got.Data[0])
+		assert.Equal(t, res.Webhook, *got.Data[0])
 
 		newDestination := "https://" + fake.DomainName() + "/" + fake.Characters()
 		res, err = cli.UpdateWebhook(ctx, res.Webhook.ID, &UpsertWebhookRequest{
@@ -126,7 +120,7 @@ func (c ClientContract) Test(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Len(t, got.Data, 1)
-		assert.Equal(t, res, got.Data[0])
+		assert.Equal(t, res.Webhook, *got.Data[0])
 	})
 
 	t.Run("the system does not allow to create a second webhook with the same scope", func(t *testing.T) {
@@ -135,11 +129,12 @@ func (c ClientContract) Test(t *testing.T) {
 
 		scope := "store/order/updated"
 		destination := "https://" + fake.DomainName() + "/" + fake.Characters()
+		active := true
 
 		_, err := cli.CreateWebhook(ctx, &UpsertWebhookRequest{
 			Scope:       scope,
 			Destination: destination,
-			Active:      true,
+			Active:      &active,
 		})
 		assert.NoError(t, err)
 
@@ -147,7 +142,7 @@ func (c ClientContract) Test(t *testing.T) {
 		_, err = cli.CreateWebhook(ctx, &UpsertWebhookRequest{
 			Scope:       scope,
 			Destination: newDestination,
-			Active:      true,
+			Active:      &active,
 		})
 		assert.Error(t, err)
 	})
