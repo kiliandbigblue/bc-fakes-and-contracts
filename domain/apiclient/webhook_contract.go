@@ -91,8 +91,8 @@ func (c ClientContract) Test(t *testing.T) {
 		ctx := context.Background()
 		cli := c.NewClient()
 
-		scope := "store/order/updated"
-		destination := "https://" + fake.DomainName() + "/" + fake.Characters()
+		scope := "store/order/*"
+		destination := "https://my-app.com/" + fake.Characters()
 		active := true
 
 		res, err := cli.CreateWebhook(ctx, &UpsertWebhookRequest{
@@ -103,32 +103,35 @@ func (c ClientContract) Test(t *testing.T) {
 		assert.NoError(t, err)
 
 		got, err := cli.ListWebhooks(ctx, &ListWebhooksOptions{
-			Scope: scope,
+			Scope:       scope,
+			Destination: destination,
 		})
 		assert.NoError(t, err)
 		assert.Len(t, got.Data, 1)
 		assert.Equal(t, res.Webhook, *got.Data[0])
 
-		newDestination := "https://" + fake.DomainName() + "/" + fake.Characters()
+		newDestination := "https://my-app.com/" + fake.Characters()
 		res, err = cli.UpdateWebhook(ctx, res.Webhook.ID, &UpsertWebhookRequest{
+			Scope:       scope,
 			Destination: newDestination,
 		})
 		assert.NoError(t, err)
 
 		got, err = cli.ListWebhooks(ctx, &ListWebhooksOptions{
-			Scope: scope,
+			Scope:       scope,
+			Destination: newDestination,
 		})
 		assert.NoError(t, err)
 		assert.Len(t, got.Data, 1)
 		assert.Equal(t, res.Webhook, *got.Data[0])
 	})
 
-	t.Run("the system does not allow to create a second webhook with the same scope", func(t *testing.T) {
+	t.Run("the system does not allow to create a second webhook with the same destination and scope", func(t *testing.T) {
 		ctx := context.Background()
 		cli := c.NewClient()
 
-		scope := "store/order/updated"
-		destination := "https://" + fake.DomainName() + "/" + fake.Characters()
+		scope := "store/order/*"
+		destination := "https://my-app.com/" + fake.Characters()
 		active := true
 
 		_, err := cli.CreateWebhook(ctx, &UpsertWebhookRequest{
@@ -138,10 +141,9 @@ func (c ClientContract) Test(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		newDestination := "https://" + fake.DomainName() + "/" + fake.Characters()
 		_, err = cli.CreateWebhook(ctx, &UpsertWebhookRequest{
 			Scope:       scope,
-			Destination: newDestination,
+			Destination: destination,
 			Active:      &active,
 		})
 		assert.Error(t, err)
