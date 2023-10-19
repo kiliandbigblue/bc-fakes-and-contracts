@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bigbluedisco/bc-fakes-and-contracts/domain/apiclient"
 	"github.com/google/go-querystring/query"
+	"github.com/kiliandbigblue/bc-fakes-and-contracts/domain/apiclient"
 	"github.com/pkg/errors"
 )
 

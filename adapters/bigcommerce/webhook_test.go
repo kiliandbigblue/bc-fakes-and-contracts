@@ -3,7 +3,7 @@ package bigcommerce
 import (
 	"testing"
 
-	"github.com/bigbluedisco/bc-fakes-and-contracts/domain/apiclient"
+	"github.com/kiliandbigblue/bc-fakes-and-contracts/domain/apiclient"
 )
 
 func TestBigcommerceWebhook(t *testing.T) {

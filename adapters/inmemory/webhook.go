@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/bigbluedisco/bc-fakes-and-contracts/domain/apiclient"
+	"github.com/kiliandbigblue/bc-fakes-and-contracts/domain/apiclient"
 )
 
 type Client struct {
